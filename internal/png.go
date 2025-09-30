@@ -4,29 +4,40 @@ import (
 	"fmt"
 	"image"
 	"image/color"
+	"image/draw"
 	"image/png"
 	"os"
 	"strconv"
 	"strings"
 
+	"github.com/radulucut/gitbrag/internal/utils"
 	"golang.org/x/image/font"
 	"golang.org/x/image/font/basicfont"
 	"golang.org/x/image/math/fixed"
 )
 
 type PNGRenderer struct {
-	width  int
-	height int
-	bg     color.Color
-	fg     color.Color
+	width    int
+	height   int
+	bg       color.Color
+	fg       color.Color
+	fontFace font.Face
 }
 
 func NewPNGRenderer() *PNGRenderer {
+	// Load the embedded Space Mono font with size 24 for better readability
+	fontFace, err := utils.LoadFont(24)
+	if err != nil {
+		// Fallback to basicfont if custom font fails
+		fontFace = basicfont.Face7x13
+	}
+
 	return &PNGRenderer{
-		width:  600,
-		height: 600,
-		bg:     color.RGBA{0, 0, 0, 0},   // Transparent by default
-		fg:     color.RGBA{0, 0, 0, 255}, // Black text by default
+		width:    800,                      // Increased resolution for better quality
+		height:   800,                      // Increased resolution for better quality
+		bg:       color.RGBA{0, 0, 0, 0},   // Transparent by default
+		fg:       color.RGBA{0, 0, 0, 255}, // Black text by default
+		fontFace: fontFace,
 	}
 }
 
@@ -49,14 +60,14 @@ func (r *PNGRenderer) SetForegroundFromHex(hexColor string) error {
 }
 
 func (r *PNGRenderer) RenderToFile(stats *GitStats, filepath string, dateRange string) error {
+	if r.fontFace == nil {
+		return fmt.Errorf("font not loaded")
+	}
+
 	img := image.NewRGBA(image.Rect(0, 0, r.width, r.height))
 
-	// Fill background
-	for y := 0; y < r.height; y++ {
-		for x := 0; x < r.width; x++ {
-			img.Set(x, y, r.bg)
-		}
-	}
+	// Fill background more efficiently
+	draw.Draw(img, img.Bounds(), &image.Uniform{r.bg}, image.Point{}, draw.Src)
 
 	filesStr := fmt.Sprint(stats.FilesChanged)
 	insertionsStr := fmt.Sprint(stats.Insertions)
@@ -72,15 +83,26 @@ func (r *PNGRenderer) RenderToFile(stats *GitStats, filepath string, dateRange s
 	redColor := color.RGBA{209, 36, 47, 255}   // Red for deletions
 
 	// Draw date range if available
-	yOffset := 260
+	yOffset := 280
 	if dateRange != "" {
-		r.drawText(img, dateRange, 200, 230, r.fg, 1)
-		yOffset = 290
+		// Calculate text width to center it
+		textWidth := font.MeasureString(r.fontFace, dateRange).Ceil()
+		dateRangeX := (r.width - textWidth) / 2
+		r.drawTextAntialiased(img, dateRange, dateRangeX, yOffset, r.fg)
 	}
 
-	r.drawText(img, filesStr, 230, yOffset, r.fg, 1)
-	r.drawText(img, insertionsStr, 230, yOffset+30, greenColor, 1)
-	r.drawText(img, deletionsStr, 230, yOffset+60, redColor, 1)
+	// Center each stat line
+	filesWidth := font.MeasureString(r.fontFace, filesStr).Ceil()
+	filesX := (r.width - filesWidth) / 2
+	r.drawTextAntialiased(img, filesStr, filesX, yOffset+100, r.fg)
+
+	insertionsWidth := font.MeasureString(r.fontFace, insertionsStr).Ceil()
+	insertionsX := (r.width - insertionsWidth) / 2
+	r.drawTextAntialiased(img, insertionsStr, insertionsX, yOffset+150, greenColor)
+
+	deletionsWidth := font.MeasureString(r.fontFace, deletionsStr).Ceil()
+	deletionsX := (r.width - deletionsWidth) / 2
+	r.drawTextAntialiased(img, deletionsStr, deletionsX, yOffset+200, redColor)
 
 	// Save to file
 	f, err := os.Create(filepath)
@@ -96,29 +118,22 @@ func (r *PNGRenderer) RenderToFile(stats *GitStats, filepath string, dateRange s
 	return nil
 }
 
-func (r *PNGRenderer) drawText(img *image.RGBA, text string, x, y int, col color.Color, scale int) {
+func (r *PNGRenderer) drawTextAntialiased(img *image.RGBA, text string, x, y int, col color.Color) {
+	// Use proper fixed-point positioning for better text rendering
 	point := fixed.Point26_6{
-		X: fixed.Int26_6(x * 64),
-		Y: fixed.Int26_6(y * 64),
+		X: fixed.I(x),
+		Y: fixed.I(y),
 	}
 
 	d := &font.Drawer{
 		Dst:  img,
 		Src:  image.NewUniform(col),
-		Face: basicfont.Face7x13,
+		Face: r.fontFace,
 		Dot:  point,
 	}
 
-	// Draw text multiple times for scaling effect (simple bold/larger text)
-	for i := range scale {
-		for j := range scale {
-			d.Dot = fixed.Point26_6{
-				X: fixed.Int26_6((x + i) * 64),
-				Y: fixed.Int26_6((y + j) * 64),
-			}
-			d.DrawString(text)
-		}
-	}
+	// Draw the text once with proper anti-aliasing
+	d.DrawString(text)
 }
 
 func parseHexColor(s string) (color.RGBA, error) {
