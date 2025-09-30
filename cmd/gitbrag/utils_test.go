@@ -26,6 +26,8 @@ func createGitRepo(t *testing.T) string {
 	cmd := exec.Command("git", "init", "-b", "main")
 	cmd.Dir = testDir
 	if err := cmd.Run(); err != nil {
+		out, _ := cmd.CombinedOutput()
+		t.Log(string(out))
 		t.Fatal(err)
 	}
 	if err := os.WriteFile(path.Join(testDir, "main.go"), []byte(`
@@ -49,12 +51,16 @@ console.log("Hello, World!");
 	cmd = exec.Command("git", "add", ".")
 	cmd.Dir = testDir
 	if err := cmd.Run(); err != nil {
+		out, _ := cmd.CombinedOutput()
+		t.Log(string(out))
 		t.Fatal(err)
 	}
 
 	cmd = exec.Command("git", "commit", "-m", "initial commit")
 	cmd.Dir = testDir
 	if err := cmd.Run(); err != nil {
+		out, _ := cmd.CombinedOutput()
+		t.Log(string(out))
 		t.Fatal(err)
 	}
 
@@ -67,24 +73,32 @@ console.log("Hello, World!");
 	cmd = exec.Command("git", "checkout", "-b", "feature")
 	cmd.Dir = testDir
 	if err := cmd.Run(); err != nil {
+		out, _ := cmd.CombinedOutput()
+		t.Log(string(out))
 		t.Fatal(err)
 	}
 
 	cmd = exec.Command("git", "add", ".")
 	cmd.Dir = testDir
 	if err := cmd.Run(); err != nil {
+		out, _ := cmd.CombinedOutput()
+		t.Log(string(out))
 		t.Fatal(err)
 	}
 
 	cmd = exec.Command("git", "commit", "-m", "second commit", "--author", "John Doe <john.doe@example.com>")
 	cmd.Dir = testDir
 	if err := cmd.Run(); err != nil {
+		out, _ := cmd.CombinedOutput()
+		t.Log(string(out))
 		t.Fatal(err)
 	}
 
 	cmd = exec.Command("git", "checkout", "main")
 	cmd.Dir = testDir
 	if err := cmd.Run(); err != nil {
+		out, _ := cmd.CombinedOutput()
+		t.Log(string(out))
 		t.Fatal(err)
 	}
 	return testDir
