@@ -61,6 +61,8 @@ Examples:
   gitbrag ./ projects
   gitbrag ./ --since 2024-01-01
   gitbrag projects another-project --since 7d
+  gitbrag ./ --author "John Doe"
+  gitbrag ./ --since 7d --author john@example.com
 `,
 		Version: version,
 		RunE:    root.RunRoot,
@@ -72,6 +74,7 @@ Examples:
 
 	flags := root.Cmd.Flags()
 	flags.String("since", "", "specific date (e.g. 2024-01-01 12:03:04) or duration (e.g. 1d)")
+	flags.String("author", "", "filter by author name or email")
 
 	root.initVersion()
 
@@ -83,9 +86,11 @@ func (r *Root) RunRoot(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
+	author := cmd.Flag("author").Value.String()
 	return r.core.Run(&internal.RunOptions{
-		Dirs:  args,
-		Since: since,
+		Dirs:   args,
+		Since:  since,
+		Author: author,
 	})
 }
 

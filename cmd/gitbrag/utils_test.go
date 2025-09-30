@@ -51,7 +51,7 @@ console.log("Hello, World!");
 	if err := exec.Command("git", "add", ".").Run(); err != nil {
 		return err
 	}
-	if err := exec.Command("git", "commit", "-m", "second commit").Run(); err != nil {
+	if err := exec.Command("git", "commit", "-m", "second commit", "--author", "John Doe <john.doe@example.com>").Run(); err != nil {
 		return err
 	}
 	return nil

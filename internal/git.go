@@ -11,6 +11,7 @@ import (
 )
 
 type GitStats struct {
+	Repositories int
 	FilesChanged int
 	Insertions   int
 	Deletions    int
@@ -32,7 +33,12 @@ func isGitRepo(dir string) bool {
 	return info.IsDir()
 }
 
-func getGitStats(dir string, since string) (GitStats, error) {
+type GitStatsOptions struct {
+	Since  string
+	Author string
+}
+
+func getGitStats(dir string, opts *GitStatsOptions) (GitStats, error) {
 	stats := GitStats{}
 
 	// Check if directory exists
@@ -47,8 +53,11 @@ func getGitStats(dir string, since string) (GitStats, error) {
 
 	// Build git log command with shortstat
 	args := []string{"log", "--pretty=", "--numstat"}
-	if since != "" {
-		args = append(args, "--since="+since)
+	if opts.Since != "" {
+		args = append(args, "--since="+opts.Since)
+	}
+	if opts.Author != "" {
+		args = append(args, "--author="+opts.Author)
 	}
 
 	cmd := exec.Command("git", args...)

@@ -22,8 +22,9 @@ func NewCore(time utils.Time, printer *Printer) *Core {
 }
 
 type RunOptions struct {
-	Dirs  []string
-	Since time.Time
+	Dirs   []string
+	Since  time.Time
+	Author string
 }
 
 func (c *Core) Run(opts *RunOptions) error {
@@ -31,13 +32,13 @@ func (c *Core) Run(opts *RunOptions) error {
 		return utils.NewInternalError("no directories specified")
 	}
 
-	totalStats := GitStats{}
-	repoCount := 0
+	totalStats := &GitStats{}
 
-	// Format the since parameter for git
-	var sinceStr string
+	gitOpts := &GitStatsOptions{
+		Author: opts.Author,
+	}
 	if !opts.Since.IsZero() {
-		sinceStr = opts.Since.Format(time.RFC3339)
+		gitOpts.Since = opts.Since.Format(time.RFC3339)
 	}
 
 	// Process each directory
@@ -63,16 +64,16 @@ func (c *Core) Run(opts *RunOptions) error {
 
 		// Check if it's a git repository
 		if isGitRepo(absDir) {
-			stats, err := getGitStats(absDir, sinceStr)
+			stats, err := getGitStats(absDir, gitOpts)
 			if err != nil {
 				c.printer.ErrPrintf("Warning: could not get git stats for '%s': %v\n", dir, err)
 				continue
 			}
 			totalStats.Add(stats)
-			repoCount++
+			totalStats.Repositories++
 		} else {
 			// Try to find git repos in subdirectories
-			err := c.processSubdirectories(absDir, &totalStats, &repoCount, sinceStr)
+			err := c.processSubdirectories(absDir, gitOpts, totalStats)
 			if err != nil {
 				c.printer.ErrPrintf("Warning: error processing subdirectories in '%s': %v\n", dir, err)
 			}
@@ -80,7 +81,7 @@ func (c *Core) Run(opts *RunOptions) error {
 	}
 
 	// Output results
-	if repoCount == 0 {
+	if totalStats.Repositories == 0 {
 		c.printer.Println("No git repositories found in the specified directories.")
 		return nil
 	}
@@ -88,7 +89,9 @@ func (c *Core) Run(opts *RunOptions) error {
 	filesStr := fmt.Sprint(totalStats.FilesChanged)
 	insertionsStr := fmt.Sprint(totalStats.Insertions)
 	deletionsStr := fmt.Sprint(totalStats.Deletions)
+
 	maxLen := max(len(filesStr), len(insertionsStr), len(deletionsStr))
+
 	filesStr = fmt.Sprintf("%*s", maxLen, filesStr)
 	insertionsStr = fmt.Sprintf("%*s", maxLen, insertionsStr)
 	deletionsStr = fmt.Sprintf("%*s", maxLen, deletionsStr)
@@ -100,7 +103,7 @@ func (c *Core) Run(opts *RunOptions) error {
 	return nil
 }
 
-func (c *Core) processSubdirectories(dir string, totalStats *GitStats, repoCount *int, sinceStr string) error {
+func (c *Core) processSubdirectories(dir string, opts *GitStatsOptions, totalStats *GitStats) error {
 	entries, err := os.ReadDir(dir)
 	if err != nil {
 		return fmt.Errorf("could not read directory: %w", err)
@@ -119,13 +122,13 @@ func (c *Core) processSubdirectories(dir string, totalStats *GitStats, repoCount
 		subDir := filepath.Join(dir, entry.Name())
 
 		if isGitRepo(subDir) {
-			stats, err := getGitStats(subDir, sinceStr)
+			stats, err := getGitStats(subDir, opts)
 			if err != nil {
 				c.printer.ErrPrintf("Warning: could not get git stats for '%s': %v\n", subDir, err)
 				continue
 			}
 			totalStats.Add(stats)
-			*repoCount++
+			totalStats.Repositories++
 		}
 	}
 
