@@ -22,9 +22,12 @@ func NewCore(time utils.Time, printer *Printer) *Core {
 }
 
 type RunOptions struct {
-	Dirs   []string
-	Since  time.Time
-	Author string
+	Dirs       []string
+	Since      time.Time
+	Author     string
+	Output     string
+	Background string
+	Color      string
 }
 
 func (c *Core) Run(opts *RunOptions) error {
@@ -83,6 +86,26 @@ func (c *Core) Run(opts *RunOptions) error {
 	// Output results
 	if totalStats.Repositories == 0 {
 		c.printer.Println("No git repositories found in the specified directories.")
+		return nil
+	}
+
+	// Check if PNG output is requested
+	if opts.Output != "" {
+		pngRenderer := NewPNGRenderer()
+		if opts.Background != "" {
+			if err := pngRenderer.SetBackgroundFromHex(opts.Background); err != nil {
+				return fmt.Errorf("invalid background color: %w", err)
+			}
+		}
+		if opts.Color != "" {
+			if err := pngRenderer.SetForegroundFromHex(opts.Color); err != nil {
+				return fmt.Errorf("invalid text color: %w", err)
+			}
+		}
+		if err := pngRenderer.RenderToFile(totalStats, opts.Output); err != nil {
+			return fmt.Errorf("failed to export PNG: %w", err)
+		}
+		c.printer.Printf("Statistics exported to %s\n", opts.Output)
 		return nil
 	}
 

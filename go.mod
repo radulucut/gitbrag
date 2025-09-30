@@ -6,6 +6,7 @@ require (
 	github.com/spf13/cobra v1.10.1
 	github.com/stretchr/testify v1.11.1
 	go.uber.org/mock v0.6.0
+	golang.org/x/image v0.31.0
 	golang.org/x/term v0.35.0
 )
 

@@ -63,6 +63,11 @@ Examples:
   gitbrag projects another-project --since 7d
   gitbrag ./ --author "John Doe"
   gitbrag ./ --since 7d --author john@example.com
+  gitbrag ./ --output stats.png
+  gitbrag ./ --output stats.png --background "#282a36"
+  gitbrag ./ -o stats.png --background fff
+  gitbrag ./ -o stats.png --color "#50fa7b"
+  gitbrag ./ -o stats.png --background 000 --color fff
 `,
 		Version: version,
 		RunE:    root.RunRoot,
@@ -75,6 +80,9 @@ Examples:
 	flags := root.Cmd.Flags()
 	flags.String("since", "", "specific date (e.g. 2024-01-01 12:03:04) or duration (e.g. 1d)")
 	flags.String("author", "", "filter by author name or email")
+	flags.StringP("output", "o", "", "export statistics to PNG file (e.g. stats.png)")
+	flags.String("background", "bg", "background color in hex format (e.g. #282a36 or 282a36), transparent by default")
+	flags.String("color", "", "text color in hex format (e.g. #f8f8f2 or f8f8f2)")
 
 	root.initVersion()
 
@@ -87,10 +95,16 @@ func (r *Root) RunRoot(cmd *cobra.Command, args []string) error {
 		return err
 	}
 	author := cmd.Flag("author").Value.String()
+	output := cmd.Flag("output").Value.String()
+	background := cmd.Flag("background").Value.String()
+	color := cmd.Flag("color").Value.String()
 	return r.core.Run(&internal.RunOptions{
-		Dirs:   args,
-		Since:  since,
-		Author: author,
+		Dirs:       args,
+		Since:      since,
+		Author:     author,
+		Output:     output,
+		Background: background,
+		Color:      color,
 	})
 }
 
