@@ -59,17 +59,25 @@ It shows files changed, insertions and deletions for specified directories.
 Examples:
   gitbrag ./
   gitbrag ./ projects
+
+  # Filter by date range
   gitbrag ./ --since 2024-01-01
   gitbrag ./ --since 2024-01-01 --until 2024-12-31
-  gitbrag projects another-project --since 7d
+  gitbrag ./ --since 7d
+
+  # Filter by author name or email
   gitbrag ./ --author "John Doe"
   gitbrag ./ --since 7d --author john@example.com
-  gitbrag ./ --output stats.png
+
+  # Output statistics to PNG file
+  gitbrag ./ -O stats.png
   gitbrag ./ --output stats.png --background "#282a36"
-  gitbrag ./ -o stats.png --background fff
-  gitbrag ./ -o stats.png --color "#50fa7b"
-  gitbrag ./ -o stats.png --background "#282a36" --color "f8f8f2"
-  gitbrag ./ -o stats.png --background 000 --color fff
+
+  # Use custom background and foreground colors
+  gitbrag ./ -O stats.png -B fff
+  gitbrag ./ -O stats.png --color "#50fa7b"
+  gitbrag ./ -O stats.png -B "#282a36" -C "f8f8f2"
+  gitbrag ./ -O stats.png -B 000 --color fff
 `,
 		Version: version,
 		RunE:    root.RunRoot,
@@ -83,9 +91,9 @@ Examples:
 	flags.String("since", "", "specific date (e.g. 2024-01-01 12:03:04) or duration (e.g. 1d)")
 	flags.String("until", "", "specific date (e.g. 2024-12-31 23:59:59)")
 	flags.String("author", "", "filter by author name or email")
-	flags.StringP("output", "o", "", "export statistics to PNG file (e.g. stats.png)")
-	flags.String("background", "bg", "background color in hex format (e.g. #282a36 or 282a36), transparent by default")
-	flags.String("color", "", "text color in hex format (e.g. #f8f8f2 or f8f8f2)")
+	flags.StringP("output", "O", "", "export statistics to PNG file (e.g. stats.png)")
+	flags.StringP("background", "B", "", "background color in hex format (e.g. #282a36 or 282a36), transparent by default")
+	flags.StringP("color", "C", "", "text color in hex format (e.g. #f8f8f2 or f8f8f2)")
 
 	root.initVersion()
 
