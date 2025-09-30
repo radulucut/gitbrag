@@ -23,7 +23,7 @@ func createGitRepo(t *testing.T) string {
 		t.Fatal(err)
 	}
 
-	cmd := exec.Command("git", "init")
+	cmd := exec.Command("git", "init", "-b", "main")
 	cmd.Dir = testDir
 	if err := cmd.Run(); err != nil {
 		t.Fatal(err)
