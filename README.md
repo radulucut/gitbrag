@@ -4,7 +4,7 @@ A command-line tool to share your commit stats from local git repositories.
 
 ![Test](https://github.com/radulucut/gitbrag/actions/workflows/tests.yml/badge.svg)
 
-<img src="./screenshot.png" width="400" height="200" />
+<img src="./screenshot.png" width="800" height="400" />
 
 ## Installation
 
