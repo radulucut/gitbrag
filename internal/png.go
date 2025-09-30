@@ -69,6 +69,7 @@ func (r *PNGRenderer) RenderToFile(stats *GitStats, filepath string, dateRange s
 	// Fill background more efficiently
 	draw.Draw(img, img.Bounds(), &image.Uniform{r.bg}, image.Point{}, draw.Src)
 
+	// add start padding to align numbers
 	filesStr := fmt.Sprint(stats.FilesChanged)
 	insertionsStr := fmt.Sprint(stats.Insertions)
 	deletionsStr := fmt.Sprint(stats.Deletions)
@@ -78,6 +79,12 @@ func (r *PNGRenderer) RenderToFile(stats *GitStats, filepath string, dateRange s
 	filesStr = fmt.Sprintf("%*s files changed", maxLen, filesStr)
 	insertionsStr = fmt.Sprintf("%*s insertions(+)", maxLen, insertionsStr)
 	deletionsStr = fmt.Sprintf("%*s deletions(-)", maxLen, deletionsStr)
+
+	// add end padding to center text
+	maxLen = max(maxLen, len(filesStr), len(insertionsStr), len(deletionsStr))
+	filesStr = fmt.Sprintf("%-*s", maxLen, filesStr)
+	insertionsStr = fmt.Sprintf("%-*s", maxLen, insertionsStr)
+	deletionsStr = fmt.Sprintf("%-*s", maxLen, deletionsStr)
 
 	greenColor := color.RGBA{26, 127, 55, 255} // Green for insertions
 	redColor := color.RGBA{209, 36, 47, 255}   // Red for deletions
