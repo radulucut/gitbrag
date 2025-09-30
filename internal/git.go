@@ -52,7 +52,7 @@ func getGitStats(dir string, opts *GitStatsOptions) (GitStats, error) {
 	}
 
 	// Build git log command with shortstat
-	args := []string{"log", "--pretty=", "--numstat"}
+	args := []string{"log", "--pretty=", "--numstat", "--branches"}
 	if opts.Since != "" {
 		args = append(args, "--since="+opts.Since)
 	}
