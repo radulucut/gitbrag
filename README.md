@@ -38,8 +38,7 @@ Download the latest binary from the [releases](https://github.com/radulucut/gitb
 ## Usage
 
 ```sh
-  gitbrag ./
-  gitbrag ./ projects
+gitbrag ./ --since '2025-01-01' --author 'john@example.com' -O stats.png -B 000 -C fff
 ```
 
 #### Filter by date range
