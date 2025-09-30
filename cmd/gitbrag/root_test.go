@@ -3,7 +3,6 @@ package gitbrag
 import (
 	"bytes"
 	"os"
-	"path"
 	"testing"
 
 	"github.com/radulucut/gitbrag/internal"
@@ -19,18 +18,7 @@ func Test_Default(t *testing.T) {
 	timeMock := mocks.NewMockTime(ctrl)
 	timeMock.EXPECT().Now().Return(defaultCurrentTime).AnyTimes()
 
-	testDir := path.Join(os.TempDir(), "test_gitbrag_"+t.Name())
-	err := os.MkdirAll(testDir, 0755)
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer func() {
-		if err := os.RemoveAll(testDir); err != nil {
-			t.Fatal(err)
-		}
-	}()
-
-	err = createGitRepo(testDir)
+	testDir, err := createGitRepo(t)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -59,18 +47,7 @@ func Test_AuthorFlag(t *testing.T) {
 	timeMock := mocks.NewMockTime(ctrl)
 	timeMock.EXPECT().Now().Return(defaultCurrentTime).AnyTimes()
 
-	testDir := path.Join(os.TempDir(), "test_gitbrag_"+t.Name())
-	err := os.MkdirAll(testDir, 0755)
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer func() {
-		if err := os.RemoveAll(testDir); err != nil {
-			t.Fatal(err)
-		}
-	}()
-
-	err = createGitRepo(testDir)
+	testDir, err := createGitRepo(t)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -100,18 +77,7 @@ func Test_AuthorFlagByEmail(t *testing.T) {
 	timeMock := mocks.NewMockTime(ctrl)
 	timeMock.EXPECT().Now().Return(defaultCurrentTime).AnyTimes()
 
-	testDir := path.Join(os.TempDir(), "test_gitbrag_"+t.Name())
-	err := os.MkdirAll(testDir, 0755)
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer func() {
-		if err := os.RemoveAll(testDir); err != nil {
-			t.Fatal(err)
-		}
-	}()
-
-	err = createGitRepo(testDir)
+	testDir, err := createGitRepo(t)
 	if err != nil {
 		t.Fatal(err)
 	}
