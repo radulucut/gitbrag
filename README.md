@@ -1,11 +1,10 @@
 # GitBrag
 
-A terminal tool that outputs git stats for local git repositories
+A command-line tool to share your commit stats from local git repositories.
 
 ![Test](https://github.com/radulucut/gitbrag/actions/workflows/tests.yml/badge.svg)
 
-<img src="./ss_1.png" width="250" height="250" />
-<img src="./ss_2.png" width="250" height="250" />
+<img src="./screenshot.png" width="400" height="200" />
 
 ## Installation
 
