@@ -24,6 +24,7 @@ func NewCore(time utils.Time, printer *Printer) *Core {
 type RunOptions struct {
 	Dirs       []string
 	Since      time.Time
+	Until      time.Time
 	Author     string
 	Output     string
 	Background string
@@ -42,6 +43,9 @@ func (c *Core) Run(opts *RunOptions) error {
 	}
 	if !opts.Since.IsZero() {
 		gitOpts.Since = opts.Since.Format(time.RFC3339)
+	}
+	if !opts.Until.IsZero() {
+		gitOpts.Until = opts.Until.Format(time.RFC3339)
 	}
 
 	// Process each directory
@@ -89,6 +93,17 @@ func (c *Core) Run(opts *RunOptions) error {
 		return nil
 	}
 
+	// Format date range
+	var dateRange string
+
+	if !opts.Since.IsZero() && !opts.Until.IsZero() {
+		dateRange = fmt.Sprintf("%s - %s", formatOutputDate(opts.Since), formatOutputDate(opts.Until))
+	} else if !opts.Since.IsZero() {
+		dateRange = fmt.Sprintf("Since %s", formatOutputDate(opts.Since))
+	} else if !opts.Until.IsZero() {
+		dateRange = fmt.Sprintf("Until %s", formatOutputDate(opts.Until))
+	}
+
 	// Check if PNG output is requested
 	if opts.Output != "" {
 		pngRenderer := NewPNGRenderer()
@@ -102,11 +117,16 @@ func (c *Core) Run(opts *RunOptions) error {
 				return fmt.Errorf("invalid text color: %w", err)
 			}
 		}
-		if err := pngRenderer.RenderToFile(totalStats, opts.Output); err != nil {
+		if err := pngRenderer.RenderToFile(totalStats, opts.Output, dateRange); err != nil {
 			return fmt.Errorf("failed to export PNG: %w", err)
 		}
 		c.printer.Printf("Statistics exported to %s\n", opts.Output)
 		return nil
+	}
+
+	// Print date range if available
+	if dateRange != "" {
+		c.printer.Printf("%s\n\n", dateRange)
 	}
 
 	filesStr := fmt.Sprint(totalStats.FilesChanged)
@@ -156,4 +176,12 @@ func (c *Core) processSubdirectories(dir string, opts *GitStatsOptions, totalSta
 	}
 
 	return nil
+}
+
+func formatOutputDate(t time.Time) string {
+	// Check if time component is zero (midnight)
+	if t.Hour() == 0 && t.Minute() == 0 && t.Second() == 0 {
+		return t.Format("Jan 2, 2006")
+	}
+	return t.Format("Jan 2, 2006 15:04:05")
 }

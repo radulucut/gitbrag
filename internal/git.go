@@ -35,6 +35,7 @@ func isGitRepo(dir string) bool {
 
 type GitStatsOptions struct {
 	Since  string
+	Until  string
 	Author string
 }
 
@@ -55,6 +56,9 @@ func getGitStats(dir string, opts *GitStatsOptions) (GitStats, error) {
 	args := []string{"log", "--pretty=", "--numstat", "--branches"}
 	if opts.Since != "" {
 		args = append(args, "--since="+opts.Since)
+	}
+	if opts.Until != "" {
+		args = append(args, "--until="+opts.Until)
 	}
 	if opts.Author != "" {
 		args = append(args, "--author="+opts.Author)

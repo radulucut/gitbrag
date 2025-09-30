@@ -48,7 +48,7 @@ func (r *PNGRenderer) SetForegroundFromHex(hexColor string) error {
 	return nil
 }
 
-func (r *PNGRenderer) RenderToFile(stats *GitStats, filepath string) error {
+func (r *PNGRenderer) RenderToFile(stats *GitStats, filepath string, dateRange string) error {
 	img := image.NewRGBA(image.Rect(0, 0, r.width, r.height))
 
 	// Fill background
@@ -71,9 +71,16 @@ func (r *PNGRenderer) RenderToFile(stats *GitStats, filepath string) error {
 	greenColor := color.RGBA{26, 127, 55, 255} // Green for insertions
 	redColor := color.RGBA{209, 36, 47, 255}   // Red for deletions
 
-	r.drawText(img, filesStr, 230, 260, r.fg, 1)
-	r.drawText(img, insertionsStr, 230, 290, greenColor, 1)
-	r.drawText(img, deletionsStr, 230, 320, redColor, 1)
+	// Draw date range if available
+	yOffset := 260
+	if dateRange != "" {
+		r.drawText(img, dateRange, 200, 230, r.fg, 1)
+		yOffset = 290
+	}
+
+	r.drawText(img, filesStr, 230, yOffset, r.fg, 1)
+	r.drawText(img, insertionsStr, 230, yOffset+30, greenColor, 1)
+	r.drawText(img, deletionsStr, 230, yOffset+60, redColor, 1)
 
 	// Save to file
 	f, err := os.Create(filepath)
