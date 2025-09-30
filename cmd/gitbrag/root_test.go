@@ -18,10 +18,7 @@ func Test_Default(t *testing.T) {
 	timeMock := mocks.NewMockTime(ctrl)
 	timeMock.EXPECT().Now().Return(defaultCurrentTime).AnyTimes()
 
-	testDir, err := createGitRepo(t)
-	if err != nil {
-		t.Fatal(err)
-	}
+	testDir := createGitRepo(t)
 
 	out := new(bytes.Buffer)
 	printer := internal.NewPrinter(nil, out, out)
@@ -47,10 +44,7 @@ func Test_AuthorFlag(t *testing.T) {
 	timeMock := mocks.NewMockTime(ctrl)
 	timeMock.EXPECT().Now().Return(defaultCurrentTime).AnyTimes()
 
-	testDir, err := createGitRepo(t)
-	if err != nil {
-		t.Fatal(err)
-	}
+	testDir := createGitRepo(t)
 
 	out := new(bytes.Buffer)
 	printer := internal.NewPrinter(nil, out, out)
@@ -77,10 +71,7 @@ func Test_AuthorFlagByEmail(t *testing.T) {
 	timeMock := mocks.NewMockTime(ctrl)
 	timeMock.EXPECT().Now().Return(defaultCurrentTime).AnyTimes()
 
-	testDir, err := createGitRepo(t)
-	if err != nil {
-		t.Fatal(err)
-	}
+	testDir := createGitRepo(t)
 
 	out := new(bytes.Buffer)
 	printer := internal.NewPrinter(nil, out, out)
