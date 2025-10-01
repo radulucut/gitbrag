@@ -5,6 +5,7 @@ A command-line tool to share your commit stats from local git repositories.
 ![Test](https://github.com/radulucut/gitbrag/actions/workflows/tests.yml/badge.svg)
 
 <img src="./screenshot.png" width="800" height="400" />
+<img src="./screenshot_lang.png" width="800" height="475" />
 
 ## Installation
 
@@ -38,6 +39,7 @@ Download the latest binary from the [releases](https://github.com/radulucut/gitb
 
 ```sh
 gitbrag ./ --since '2025-01-01' --author 'john@example.com' -O stats.png -B 000 -C fff
+gitbrag ./ --since '2025-09-01' --until '2025-10-01' -O stats.png -B fff -C 000 --lang --exclude-files '.*package-lock.json$'
 ```
 
 #### Filter by date range
