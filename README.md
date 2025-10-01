@@ -39,6 +39,9 @@ Download the latest binary from the [releases](https://github.com/radulucut/gitb
 
 ```sh
 gitbrag ./ --since '2025-01-01' --author 'john@example.com' -O stats.png -B 000 -C fff
+```
+
+```sh
 gitbrag ./ --since '2025-09-01' --until '2025-10-01' -O stats.png -B fff -C 000 --lang --exclude-files '.*package-lock.json$'
 ```
 
@@ -46,7 +49,13 @@ gitbrag ./ --since '2025-09-01' --until '2025-10-01' -O stats.png -B fff -C 000 
 
 ```sh
 gitbrag ./ --since 2024-01-01
+```
+
+```sh
 gitbrag ./ --since 2024-01-01 --until 2024-12-31
+```
+
+```sh
 gitbrag ./ --since 7d
 ```
 
@@ -54,6 +63,9 @@ gitbrag ./ --since 7d
 
 ```sh
 gitbrag ./ --author "John Doe"
+```
+
+```sh
 gitbrag ./ --since 7d --author john@example.com
 ```
 
@@ -61,6 +73,9 @@ gitbrag ./ --since 7d --author john@example.com
 
 ```sh
 gitbrag ./ -O stats.png
+```
+
+```sh
 gitbrag ./ --output stats.png --background "#282a36"
 ```
 
@@ -68,8 +83,17 @@ gitbrag ./ --output stats.png --background "#282a36"
 
 ```sh
 gitbrag ./ -O stats.png -B fff
+```
+
+```sh
 gitbrag ./ -O stats.png --color "#50fa7b"
+```
+
+```sh
 gitbrag ./ -O stats.png -B "#282a36" -C "f8f8f2"
+```
+
+```sh
 gitbrag ./ -O stats.png -B 000 --color fff
 ```
 
@@ -77,6 +101,9 @@ gitbrag ./ -O stats.png -B 000 --color fff
 
 ```sh
 gitbrag ./ -O stats.png --lang
+```
+
+```sh
 gitbrag ./ -O stats.png --lang -B "#282a36" -C "f8f8f2"
 ```
 
@@ -86,6 +113,9 @@ The `--lang` flag adds a visual bar chart showing the percentage breakdown of yo
 
 ```sh
 gitbrag ./ --exclude-files '.*\.lock$'
+```
+
+```sh
 gitbrag ./ --exclude-files 'package-lock\.json'
 ```
 
@@ -95,6 +125,9 @@ The `--exclude-files` flag accepts a regular expression (https://github.com/goog
 
 ```sh
 gitbrag ./ --exclude-dirs 'node_modules|vendor'
+```
+
+```sh
 gitbrag ./ --exclude-dirs '.*test.*'
 ```
 
