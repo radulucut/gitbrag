@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"os"
 	"path/filepath"
+	"runtime"
 	"testing"
 
 	"github.com/radulucut/gitbrag/internal"
@@ -93,6 +94,11 @@ func Test_AuthorFlagByEmail(t *testing.T) {
 }
 
 func Test_PNG_Output_1(t *testing.T) {
+	// skip if not macOS
+	if runtime.GOOS != "darwin" {
+		t.Skip("skipping on non-macOS")
+	}
+
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
@@ -129,6 +135,11 @@ func Test_PNG_Output_1(t *testing.T) {
 }
 
 func Test_PNG_Output_2(t *testing.T) {
+	// skip if not macOS
+	if runtime.GOOS != "darwin" {
+		t.Skip("skipping on non-macOS")
+	}
+
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
@@ -165,6 +176,11 @@ func Test_PNG_Output_2(t *testing.T) {
 }
 
 func Test_PNG_Output_Lang(t *testing.T) {
+	// skip if not macOS
+	if runtime.GOOS != "darwin" {
+		t.Skip("skipping on non-macOS")
+	}
+
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
