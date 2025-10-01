@@ -89,6 +89,15 @@ gitbrag ./ --exclude-files 'package-lock\.json'
 
 The `--exclude-files` flag accepts a regular expression (https://github.com/google/re2/wiki/Syntax) pattern to exclude files from the statistics. This is useful for ignoring lock files, dependencies, or any other files you don't want to include in your commit stats.
 
+#### Exclude directories matching regex pattern
+
+```sh
+gitbrag ./ --exclude-dirs 'node_modules|vendor'
+gitbrag ./ --exclude-dirs '.*test.*'
+```
+
+The `--exclude-dirs` flag accepts a regular expression (https://github.com/google/re2/wiki/Syntax) pattern to exclude directories when scanning for git repositories. This is useful for skipping large dependency directories like `node_modules` or `vendor`, or excluding test directories. The pattern matches against directory names, not full paths.
+
 #### Help
 
 ```bash

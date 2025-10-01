@@ -87,6 +87,10 @@ Examples:
   # Exclude files matching regex pattern
   gitbrag ./ --exclude-files '.*\.lock$'
   gitbrag ./ --exclude-files 'package-lock\.json'
+
+  # Exclude directories matching regex pattern
+  gitbrag ./ --exclude-dirs 'node_modules|vendor'
+  gitbrag ./ --exclude-dirs '.*test.*'
 `,
 		Version: version,
 		RunE:    root.RunRoot,
@@ -105,6 +109,7 @@ Examples:
 	flags.StringP("color", "C", "", "text color in hex format (e.g. #f8f8f2 or f8f8f2)")
 	flags.Bool("lang", false, "show language breakdown with top 3 languages and others (PNG output only)")
 	flags.String("exclude-files", "", "exclude files matching regex pattern (e.g. '.*package-lock.json$')")
+	flags.String("exclude-dirs", "", "exclude directories matching regex pattern (e.g. 'node_modules|vendor')")
 
 	root.initVersion()
 
@@ -126,12 +131,21 @@ func (r *Root) RunRoot(cmd *cobra.Command, args []string) error {
 	color := cmd.Flag("color").Value.String()
 	lang, _ := cmd.Flags().GetBool("lang")
 	excludeFiles := cmd.Flag("exclude-files").Value.String()
+	excludeDirs := cmd.Flag("exclude-dirs").Value.String()
 
 	var excludeFilesRegexp *regexp.Regexp
 	if excludeFiles != "" {
 		excludeFilesRegexp, err = regexp.Compile(excludeFiles)
 		if err != nil {
 			return fmt.Errorf("invalid exclude-files regex: %w", err)
+		}
+	}
+
+	var excludeDirsRegexp *regexp.Regexp
+	if excludeDirs != "" {
+		excludeDirsRegexp, err = regexp.Compile(excludeDirs)
+		if err != nil {
+			return fmt.Errorf("invalid exclude-dirs regex: %w", err)
 		}
 	}
 
@@ -145,6 +159,7 @@ func (r *Root) RunRoot(cmd *cobra.Command, args []string) error {
 		Color:        color,
 		Lang:         lang,
 		ExcludeFiles: excludeFilesRegexp,
+		ExcludeDirs:  excludeDirsRegexp,
 	})
 }
 

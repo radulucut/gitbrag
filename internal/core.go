@@ -33,6 +33,7 @@ type RunOptions struct {
 	Color        string
 	Lang         bool
 	ExcludeFiles *regexp.Regexp
+	ExcludeDirs  *regexp.Regexp
 }
 
 func (c *Core) Run(opts *RunOptions) error {
@@ -55,7 +56,7 @@ func (c *Core) Run(opts *RunOptions) error {
 
 	// Process each directory
 	for _, dir := range opts.Dirs {
-		c.processDirectory(dir, gitOpts, totalStats)
+		c.processDirectory(dir, gitOpts, totalStats, opts.ExcludeDirs)
 	}
 
 	// Output results
@@ -114,7 +115,7 @@ func (c *Core) Run(opts *RunOptions) error {
 	return nil
 }
 
-func (c *Core) processDirectory(dir string, gitOpts *GitStatsOptions, totalStats *GitStats) {
+func (c *Core) processDirectory(dir string, gitOpts *GitStatsOptions, totalStats *GitStats, excludeDirs *regexp.Regexp) {
 	// Convert to absolute path
 	absDir, err := filepath.Abs(dir)
 	if err != nil {
@@ -144,20 +145,19 @@ func (c *Core) processDirectory(dir string, gitOpts *GitStatsOptions, totalStats
 		totalStats.Add(stats)
 		totalStats.Repositories++
 	} else {
-		// Try to find git repos in subdirectories
-		err := c.processSubdirectories(absDir, gitOpts, totalStats)
-		if err != nil {
-			c.printer.ErrPrintf("Warning: error processing subdirectories in '%s': %v\n", dir, err)
-		}
+		c.processSubdirectories(absDir, gitOpts, totalStats, excludeDirs)
 	}
 }
 
-func (c *Core) processSubdirectories(dir string, opts *GitStatsOptions, totalStats *GitStats) error {
+func (c *Core) processSubdirectories(dir string, opts *GitStatsOptions, totalStats *GitStats, excludeDirs *regexp.Regexp) {
 	entries, err := os.ReadDir(dir)
 	if err != nil {
-		return fmt.Errorf("could not read directory: %w", err)
+		c.printer.ErrPrintf("Warning: could not read directory '%s': %v\n", dir, err)
+		return
 	}
 
+	var nextDirs []string
+	gitDirFound := false
 	for _, entry := range entries {
 		if !entry.IsDir() {
 			continue
@@ -165,6 +165,11 @@ func (c *Core) processSubdirectories(dir string, opts *GitStatsOptions, totalSta
 
 		// Skip hidden directories except .git
 		if entry.Name()[0] == '.' && entry.Name() != ".git" {
+			continue
+		}
+
+		// Skip directories matching exclude pattern
+		if excludeDirs != nil && excludeDirs.MatchString(entry.Name()) {
 			continue
 		}
 
@@ -178,16 +183,18 @@ func (c *Core) processSubdirectories(dir string, opts *GitStatsOptions, totalSta
 			}
 			totalStats.Add(stats)
 			totalStats.Repositories++
+			gitDirFound = true
 		} else {
-			// Recursively search subdirectories
-			err := c.processSubdirectories(subDir, opts, totalStats)
-			if err != nil {
-				c.printer.ErrPrintf("Warning: error processing subdirectories in '%s': %v\n", subDir, err)
-			}
+			nextDirs = append(nextDirs, subDir)
 		}
 	}
 
-	return nil
+	// if no git directory found, process subdirectories
+	if !gitDirFound {
+		for _, subDir := range nextDirs {
+			c.processSubdirectories(subDir, opts, totalStats, excludeDirs)
+		}
+	}
 }
 
 func formatOutputDate(t time.Time) string {
