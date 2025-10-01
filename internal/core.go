@@ -55,41 +55,7 @@ func (c *Core) Run(opts *RunOptions) error {
 
 	// Process each directory
 	for _, dir := range opts.Dirs {
-		// Convert to absolute path
-		absDir, err := filepath.Abs(dir)
-		if err != nil {
-			c.printer.ErrPrintf("Warning: could not resolve path '%s': %v\n", dir, err)
-			continue
-		}
-
-		// Check if directory exists
-		info, err := os.Stat(absDir)
-		if err != nil {
-			c.printer.ErrPrintf("Warning: could not access '%s': %v\n", dir, err)
-			continue
-		}
-
-		if !info.IsDir() {
-			c.printer.ErrPrintf("Warning: '%s' is not a directory\n", dir)
-			continue
-		}
-
-		// Check if it's a git repository
-		if isGitRepo(absDir) {
-			stats, err := getGitStats(absDir, gitOpts)
-			if err != nil {
-				c.printer.ErrPrintf("Warning: could not get git stats for '%s': %v\n", dir, err)
-				continue
-			}
-			totalStats.Add(stats)
-			totalStats.Repositories++
-		} else {
-			// Try to find git repos in subdirectories
-			err := c.processSubdirectories(absDir, gitOpts, totalStats)
-			if err != nil {
-				c.printer.ErrPrintf("Warning: error processing subdirectories in '%s': %v\n", dir, err)
-			}
-		}
+		c.processDirectory(dir, gitOpts, totalStats)
 	}
 
 	// Output results
@@ -148,6 +114,44 @@ func (c *Core) Run(opts *RunOptions) error {
 	return nil
 }
 
+func (c *Core) processDirectory(dir string, gitOpts *GitStatsOptions, totalStats *GitStats) {
+	// Convert to absolute path
+	absDir, err := filepath.Abs(dir)
+	if err != nil {
+		c.printer.ErrPrintf("Warning: could not resolve path '%s': %v\n", dir, err)
+		return
+	}
+
+	// Check if directory exists
+	info, err := os.Stat(absDir)
+	if err != nil {
+		c.printer.ErrPrintf("Warning: could not access '%s': %v\n", dir, err)
+		return
+	}
+
+	if !info.IsDir() {
+		c.printer.ErrPrintf("Warning: '%s' is not a directory\n", dir)
+		return
+	}
+
+	// Check if it's a git repository
+	if isGitRepo(absDir) {
+		stats, err := getGitStats(absDir, gitOpts)
+		if err != nil {
+			c.printer.ErrPrintf("Warning: could not get git stats for '%s': %v\n", dir, err)
+			return
+		}
+		totalStats.Add(stats)
+		totalStats.Repositories++
+	} else {
+		// Try to find git repos in subdirectories
+		err := c.processSubdirectories(absDir, gitOpts, totalStats)
+		if err != nil {
+			c.printer.ErrPrintf("Warning: error processing subdirectories in '%s': %v\n", dir, err)
+		}
+	}
+}
+
 func (c *Core) processSubdirectories(dir string, opts *GitStatsOptions, totalStats *GitStats) error {
 	entries, err := os.ReadDir(dir)
 	if err != nil {
@@ -174,6 +178,12 @@ func (c *Core) processSubdirectories(dir string, opts *GitStatsOptions, totalSta
 			}
 			totalStats.Add(stats)
 			totalStats.Repositories++
+		} else {
+			// Recursively search subdirectories
+			err := c.processSubdirectories(subDir, opts, totalStats)
+			if err != nil {
+				c.printer.ErrPrintf("Warning: error processing subdirectories in '%s': %v\n", subDir, err)
+			}
 		}
 	}
 
