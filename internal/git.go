@@ -15,12 +15,20 @@ type GitStats struct {
 	FilesChanged int
 	Insertions   int
 	Deletions    int
+	Languages    map[string]int // Lines of code per language
 }
 
 func (g *GitStats) Add(other GitStats) {
 	g.FilesChanged += other.FilesChanged
 	g.Insertions += other.Insertions
 	g.Deletions += other.Deletions
+
+	if g.Languages == nil {
+		g.Languages = make(map[string]int)
+	}
+	for lang, lines := range other.Languages {
+		g.Languages[lang] += lines
+	}
 }
 
 // isGitRepo checks if a directory is a git repository
@@ -40,7 +48,9 @@ type GitStatsOptions struct {
 }
 
 func getGitStats(dir string, opts *GitStatsOptions) (GitStats, error) {
-	stats := GitStats{}
+	stats := GitStats{
+		Languages: make(map[string]int),
+	}
 
 	// Check if directory exists
 	if _, err := os.Stat(dir); err != nil {
@@ -98,15 +108,20 @@ func getGitStats(dir string, opts *GitStatsOptions) (GitStats, error) {
 
 		insertions := parts[0]
 		deletions := parts[1]
-		filename := parts[2]
+		filename := strings.Join(parts[2:], " ")
 
 		// Track unique files
 		filesMap[filename] = true
+
+		// Detect language from file extension
+		lang := detectLanguage(filename)
+		var totalLines int
 
 		// Parse insertions
 		if insertions != "-" {
 			if n, err := strconv.Atoi(insertions); err == nil {
 				stats.Insertions += n
+				totalLines += n
 			}
 		}
 
@@ -114,7 +129,13 @@ func getGitStats(dir string, opts *GitStatsOptions) (GitStats, error) {
 		if deletions != "-" {
 			if n, err := strconv.Atoi(deletions); err == nil {
 				stats.Deletions += n
+				totalLines += n
 			}
+		}
+
+		// Track language statistics
+		if lang != "" && totalLines > 0 {
+			stats.Languages[lang] += totalLines
 		}
 	}
 

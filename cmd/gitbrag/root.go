@@ -78,6 +78,9 @@ Examples:
   gitbrag ./ -O stats.png --color "#50fa7b"
   gitbrag ./ -O stats.png -B "#282a36" -C "f8f8f2"
   gitbrag ./ -O stats.png -B 000 --color fff
+
+  # Show language breakdown (top 3 + Others)
+  gitbrag ./ -O stats.png --lang
 `,
 		Version: version,
 		RunE:    root.RunRoot,
@@ -94,6 +97,7 @@ Examples:
 	flags.StringP("output", "O", "", "export statistics to PNG file (e.g. stats.png)")
 	flags.StringP("background", "B", "", "background color in hex format (e.g. #282a36 or 282a36), transparent by default")
 	flags.StringP("color", "C", "", "text color in hex format (e.g. #f8f8f2 or f8f8f2)")
+	flags.Bool("lang", false, "show language breakdown with top 3 languages and others (PNG output only)")
 
 	root.initVersion()
 
@@ -113,6 +117,7 @@ func (r *Root) RunRoot(cmd *cobra.Command, args []string) error {
 	output := cmd.Flag("output").Value.String()
 	background := cmd.Flag("background").Value.String()
 	color := cmd.Flag("color").Value.String()
+	lang, _ := cmd.Flags().GetBool("lang")
 	return r.core.Run(&internal.RunOptions{
 		Dirs:       args,
 		Since:      since,
@@ -121,6 +126,7 @@ func (r *Root) RunRoot(cmd *cobra.Command, args []string) error {
 		Output:     output,
 		Background: background,
 		Color:      color,
+		Lang:       lang,
 	})
 }
 

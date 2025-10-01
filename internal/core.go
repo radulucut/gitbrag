@@ -25,10 +25,12 @@ type RunOptions struct {
 	Dirs       []string
 	Since      time.Time
 	Until      time.Time
+	DateRange  string
 	Author     string
 	Output     string
 	Background string
 	Color      string
+	Lang       bool
 }
 
 func (c *Core) Run(opts *RunOptions) error {
@@ -93,15 +95,12 @@ func (c *Core) Run(opts *RunOptions) error {
 		return nil
 	}
 
-	// Format date range
-	var dateRange string
-
 	if !opts.Since.IsZero() && !opts.Until.IsZero() {
-		dateRange = fmt.Sprintf("%s - %s", formatOutputDate(opts.Since), formatOutputDate(opts.Until))
+		opts.DateRange = fmt.Sprintf("%s - %s", formatOutputDate(opts.Since), formatOutputDate(opts.Until))
 	} else if !opts.Since.IsZero() {
-		dateRange = fmt.Sprintf("Since %s", formatOutputDate(opts.Since))
+		opts.DateRange = fmt.Sprintf("Since %s", formatOutputDate(opts.Since))
 	} else if !opts.Until.IsZero() {
-		dateRange = fmt.Sprintf("Until %s", formatOutputDate(opts.Until))
+		opts.DateRange = fmt.Sprintf("Until %s", formatOutputDate(opts.Until))
 	}
 
 	// Check if PNG output is requested
@@ -117,7 +116,7 @@ func (c *Core) Run(opts *RunOptions) error {
 				return fmt.Errorf("invalid text color: %w", err)
 			}
 		}
-		if err := pngRenderer.RenderToFile(totalStats, opts.Output, dateRange); err != nil {
+		if err := pngRenderer.RenderToFile(totalStats, opts); err != nil {
 			return fmt.Errorf("failed to export PNG: %w", err)
 		}
 		c.printer.Printf("Statistics exported to %s\n", opts.Output)
@@ -125,8 +124,8 @@ func (c *Core) Run(opts *RunOptions) error {
 	}
 
 	// Print date range if available
-	if dateRange != "" {
-		c.printer.Printf("%s\n\n", dateRange)
+	if opts.DateRange != "" {
+		c.printer.Printf("%s\n\n", opts.DateRange)
 	}
 
 	filesStr := fmt.Sprint(totalStats.FilesChanged)

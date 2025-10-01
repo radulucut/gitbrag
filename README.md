@@ -71,6 +71,15 @@ gitbrag ./ -O stats.png -B "#282a36" -C "f8f8f2"
 gitbrag ./ -O stats.png -B 000 --color fff
 ```
 
+#### Show language breakdown
+
+```sh
+gitbrag ./ -O stats.png --lang
+gitbrag ./ -O stats.png --lang -B "#282a36" -C "f8f8f2"
+```
+
+The `--lang` flag adds a visual bar chart showing the percentage breakdown of your top 3 programming languages plus an "Others" category. Each language is displayed with its representative color and percentage. This feature only works with PNG output (`-O` flag).
+
 #### Help
 
 ```bash

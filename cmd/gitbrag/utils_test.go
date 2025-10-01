@@ -3,7 +3,7 @@ package gitbrag
 import (
 	"os"
 	"os/exec"
-	"path"
+	"path/filepath"
 	"testing"
 	"time"
 )
@@ -25,12 +25,11 @@ func createGitRepo(t *testing.T) string {
 
 	cmd := exec.Command("git", "init", "-b", "main")
 	cmd.Dir = testDir
-	if err := cmd.Run(); err != nil {
-		out, _ := cmd.CombinedOutput()
+	if out, err := cmd.CombinedOutput(); err != nil {
 		t.Log(string(out))
 		t.Fatal(err)
 	}
-	if err := os.WriteFile(path.Join(testDir, "main.go"), []byte(`
+	if err := os.WriteFile(filepath.Join(testDir, "main.go"), []byte(`
 package main
 
 import "fmt"
@@ -41,7 +40,7 @@ func main() {
 `), 0644); err != nil {
 		t.Fatal(err)
 	}
-	if err := os.WriteFile(path.Join(testDir, "main.ts"), []byte(`
+	if err := os.WriteFile(filepath.Join(testDir, "main.ts"), []byte(`
 console.log("Hello, World!");
 console.log("Hello, World!");
 `), 0644); err != nil {
@@ -50,21 +49,19 @@ console.log("Hello, World!");
 
 	cmd = exec.Command("git", "add", ".")
 	cmd.Dir = testDir
-	if err := cmd.Run(); err != nil {
-		out, _ := cmd.CombinedOutput()
+	if out, err := cmd.CombinedOutput(); err != nil {
 		t.Log(string(out))
 		t.Fatal(err)
 	}
 
 	cmd = exec.Command("git", "commit", "-m", "initial commit")
 	cmd.Dir = testDir
-	if err := cmd.Run(); err != nil {
-		out, _ := cmd.CombinedOutput()
+	if out, err := cmd.CombinedOutput(); err != nil {
 		t.Log(string(out))
 		t.Fatal(err)
 	}
 
-	if err := os.WriteFile(path.Join(testDir, "main.ts"), []byte(`
+	if err := os.WriteFile(filepath.Join(testDir, "main.ts"), []byte(`
 console.log("Hello, World!");
 `), 0644); err != nil {
 		t.Fatal(err)
@@ -72,32 +69,28 @@ console.log("Hello, World!");
 
 	cmd = exec.Command("git", "checkout", "-b", "feature")
 	cmd.Dir = testDir
-	if err := cmd.Run(); err != nil {
-		out, _ := cmd.CombinedOutput()
+	if out, err := cmd.CombinedOutput(); err != nil {
 		t.Log(string(out))
 		t.Fatal(err)
 	}
 
 	cmd = exec.Command("git", "add", ".")
 	cmd.Dir = testDir
-	if err := cmd.Run(); err != nil {
-		out, _ := cmd.CombinedOutput()
+	if out, err := cmd.CombinedOutput(); err != nil {
 		t.Log(string(out))
 		t.Fatal(err)
 	}
 
 	cmd = exec.Command("git", "commit", "-m", "second commit", "--author", "John Doe <john.doe@example.com>")
 	cmd.Dir = testDir
-	if err := cmd.Run(); err != nil {
-		out, _ := cmd.CombinedOutput()
+	if out, err := cmd.CombinedOutput(); err != nil {
 		t.Log(string(out))
 		t.Fatal(err)
 	}
 
 	cmd = exec.Command("git", "checkout", "main")
 	cmd.Dir = testDir
-	if err := cmd.Run(); err != nil {
-		out, _ := cmd.CombinedOutput()
+	if out, err := cmd.CombinedOutput(); err != nil {
 		t.Log(string(out))
 		t.Fatal(err)
 	}

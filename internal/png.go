@@ -7,6 +7,7 @@ import (
 	"image/draw"
 	"image/png"
 	"os"
+	"sort"
 	"strconv"
 	"strings"
 
@@ -59,9 +60,13 @@ func (r *PNGRenderer) SetForegroundFromHex(hexColor string) error {
 	return nil
 }
 
-func (r *PNGRenderer) RenderToFile(stats *GitStats, filepath string, dateRange string) error {
+func (r *PNGRenderer) RenderToFile(stats *GitStats, opts *RunOptions) error {
 	if r.fontFace == nil {
 		return fmt.Errorf("font not loaded")
+	}
+
+	if opts.Lang && len(stats.Languages) > 0 {
+		r.height = 950 // Add extra space for language bar and labels
 	}
 
 	img := image.NewRGBA(image.Rect(0, 0, r.width, r.height))
@@ -91,11 +96,11 @@ func (r *PNGRenderer) RenderToFile(stats *GitStats, filepath string, dateRange s
 
 	// Draw date range if available
 	yOffset := 280
-	if dateRange != "" {
+	if opts.DateRange != "" {
 		// Calculate text width to center it
-		textWidth := font.MeasureString(r.fontFace, dateRange).Ceil()
+		textWidth := font.MeasureString(r.fontFace, opts.DateRange).Ceil()
 		dateRangeX := (r.width - textWidth) / 2
-		r.drawTextAntialiased(img, dateRange, dateRangeX, yOffset, r.fg)
+		r.drawTextAntialiased(img, opts.DateRange, dateRangeX, yOffset, r.fg)
 	}
 
 	// Center each stat line
@@ -111,8 +116,13 @@ func (r *PNGRenderer) RenderToFile(stats *GitStats, filepath string, dateRange s
 	deletionsX := (r.width - deletionsWidth) / 2
 	r.drawTextAntialiased(img, deletionsStr, deletionsX, yOffset+200, redColor)
 
+	// Draw language breakdown if requested
+	if opts.Lang && len(stats.Languages) > 0 {
+		r.drawLanguageBar(img, stats, yOffset+280)
+	}
+
 	// Save to file
-	f, err := os.Create(filepath)
+	f, err := os.Create(opts.Output)
 	if err != nil {
 		return fmt.Errorf("failed to create file: %w", err)
 	}
@@ -183,4 +193,129 @@ func parseHexColor(s string) (color.RGBA, error) {
 	}
 
 	return color.RGBA{r, g, b, a}, nil
+}
+
+// LanguageInfo holds information about a language's usage
+type LanguageInfo struct {
+	Name       string
+	Lines      int
+	Percentage float64
+	Color      color.RGBA
+}
+
+// drawLanguageBar draws a horizontal bar chart showing language breakdown
+func (r *PNGRenderer) drawLanguageBar(img *image.RGBA, stats *GitStats, yOffset int) {
+	if len(stats.Languages) == 0 {
+		return
+	}
+
+	// Calculate total lines
+	totalLines := 0
+	for _, lines := range stats.Languages {
+		totalLines += lines
+	}
+
+	if totalLines == 0 {
+		return
+	}
+
+	// Sort languages by lines (descending)
+	var languages []LanguageInfo
+	for lang, lines := range stats.Languages {
+		percentage := float64(lines) / float64(totalLines) * 100
+		languages = append(languages, LanguageInfo{
+			Name:       lang,
+			Lines:      lines,
+			Percentage: percentage,
+			Color:      getLanguageColor(lang),
+		})
+	}
+
+	sort.Slice(languages, func(i, j int) bool {
+		return languages[i].Lines > languages[j].Lines
+	})
+
+	// Group into top 3 and others
+	var displayLangs []LanguageInfo
+	othersLines := 0
+	othersPercentage := 0.0
+
+	for i, lang := range languages {
+		if i < 3 {
+			displayLangs = append(displayLangs, lang)
+		} else {
+			othersLines += lang.Lines
+			othersPercentage += lang.Percentage
+		}
+	}
+
+	// Add "Others" category if there are more than 3 languages
+	if len(languages) > 3 {
+		displayLangs = append(displayLangs, LanguageInfo{
+			Name:       "Other",
+			Lines:      othersLines,
+			Percentage: othersPercentage,
+			Color:      color.RGBA{150, 150, 150, 255}, // Gray for other
+		})
+	}
+
+	// Draw the bar
+	barWidth := 600
+	barHeight := 40
+	barX := (r.width - barWidth) / 2
+	barY := yOffset
+
+	// Draw each language segment
+	currentX := barX
+	for _, lang := range displayLangs {
+		segmentWidth := int(float64(barWidth) * lang.Percentage / 100)
+		if segmentWidth > 0 {
+			// Draw the colored segment
+			segmentRect := image.Rect(currentX, barY, currentX+segmentWidth, barY+barHeight)
+			draw.Draw(img, segmentRect, &image.Uniform{lang.Color}, image.Point{}, draw.Src)
+			currentX += segmentWidth
+		}
+	}
+
+	// Draw labels on the same line below the bar with colored circles
+	labelY := barY + barHeight + 40
+	circleRadius := 8
+	circleSpacing := 10
+	labelPadding := 30 // Space between different labels
+
+	currentX = barX
+
+	for _, lang := range displayLangs {
+		// Format the label: just the language name
+		label := lang.Name
+
+		// Draw colored circle
+		circleX := currentX + circleRadius
+		circleY := labelY - 6 // Adjust to align with text baseline
+		r.drawFilledCircle(img, circleX, circleY, circleRadius, lang.Color)
+
+		// Draw text after the circle
+		textX := currentX + (circleRadius * 2) + circleSpacing
+		r.drawTextAntialiased(img, label, textX, labelY, r.fg)
+
+		// Move to next label position
+		labelWidth := font.MeasureString(r.fontFace, label).Ceil()
+		currentX = textX + labelWidth + labelPadding
+	}
+}
+
+// drawFilledCircle draws a filled circle at the given position
+func (r *PNGRenderer) drawFilledCircle(img *image.RGBA, centerX, centerY, radius int, col color.RGBA) {
+	// Use midpoint circle algorithm to draw a filled circle
+	for y := -radius; y <= radius; y++ {
+		for x := -radius; x <= radius; x++ {
+			if x*x+y*y <= radius*radius {
+				px := centerX + x
+				py := centerY + y
+				if px >= 0 && px < img.Bounds().Dx() && py >= 0 && py < img.Bounds().Dy() {
+					img.Set(px, py, col)
+				}
+			}
+		}
+	}
 }
