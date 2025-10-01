@@ -23,12 +23,7 @@ func createGitRepo(t *testing.T) string {
 		t.Fatal(err)
 	}
 
-	var cmd *exec.Cmd
-	if os.Getenv("CI") != "" {
-		cmd = exec.Command("git", "-c", "user.name=Test User", "-c", "user.email=test@example.com", "init", "-b", "main")
-	} else {
-		cmd = exec.Command("git", "init", "-b", "main")
-	}
+	cmd := exec.Command("git", "init", "-b", "main")
 	cmd.Dir = testDir
 	if out, err := cmd.CombinedOutput(); err != nil {
 		t.Log(string(out))
@@ -59,7 +54,7 @@ console.log("Hello, World!");
 		t.Fatal(err)
 	}
 
-	cmd = exec.Command("git", "commit", "-m", "initial commit")
+	cmd = exec.Command("git", "-c", "user.name=Test User", "-c", "user.email=test@example.com", "commit", "-m", "initial commit")
 	cmd.Dir = testDir
 	if out, err := cmd.CombinedOutput(); err != nil {
 		t.Log(string(out))
@@ -86,7 +81,7 @@ console.log("Hello, World!");
 		t.Fatal(err)
 	}
 
-	cmd = exec.Command("git", "commit", "-m", "second commit", "--author", "John Doe <john.doe@example.com>")
+	cmd = exec.Command("git", "-c", "user.name=Test User", "-c", "user.email=test@example.com", "commit", "-m", "second commit", "--author", "John Doe <john.doe@example.com>")
 	cmd.Dir = testDir
 	if out, err := cmd.CombinedOutput(); err != nil {
 		t.Log(string(out))

@@ -199,3 +199,29 @@ func Test_PNG_Output_Lang(t *testing.T) {
 	}
 	assert.Equal(t, expectedPNG, actualPNG)
 }
+
+func Test_ExcludeFiles(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	timeMock := mocks.NewMockTime(ctrl)
+	timeMock.EXPECT().Now().Return(defaultCurrentTime).AnyTimes()
+
+	testDir := createGitRepo(t)
+
+	out := new(bytes.Buffer)
+	printer := internal.NewPrinter(nil, out, out)
+	core := internal.NewCore(timeMock, printer)
+	root, err := NewRoot("0.1.0", timeMock, printer, core)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	os.Args = []string{"gitbrag", testDir, "--exclude-files", ".*.go$"}
+
+	err = root.Cmd.Execute()
+	if err != nil {
+		t.Fatal(err)
+	}
+	assert.Equal(t, "1 files changed\n3 insertions(+)\n1 deletions(-)\n", out.String())
+}

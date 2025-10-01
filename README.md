@@ -80,6 +80,15 @@ gitbrag ./ -O stats.png --lang -B "#282a36" -C "f8f8f2"
 
 The `--lang` flag adds a visual bar chart showing the percentage breakdown of your top 3 programming languages plus an "Others" category. Each language is displayed with its representative color and percentage. This feature only works with PNG output (`-O` flag).
 
+#### Exclude files matching regex pattern
+
+```sh
+gitbrag ./ --exclude-files '.*\.lock$'
+gitbrag ./ --exclude-files 'package-lock\.json'
+```
+
+The `--exclude-files` flag accepts a regular expression (https://github.com/google/re2/wiki/Syntax) pattern to exclude files from the statistics. This is useful for ignoring lock files, dependencies, or any other files you don't want to include in your commit stats.
+
 #### Help
 
 ```bash

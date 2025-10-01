@@ -4,6 +4,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"regexp"
 	"strconv"
 	"strings"
 
@@ -42,9 +43,10 @@ func isGitRepo(dir string) bool {
 }
 
 type GitStatsOptions struct {
-	Since  string
-	Until  string
-	Author string
+	Since        string
+	Until        string
+	Author       string
+	ExcludeFiles *regexp.Regexp
 }
 
 func getGitStats(dir string, opts *GitStatsOptions) (GitStats, error) {
@@ -109,6 +111,11 @@ func getGitStats(dir string, opts *GitStatsOptions) (GitStats, error) {
 		insertions := parts[0]
 		deletions := parts[1]
 		filename := strings.Join(parts[2:], " ")
+
+		// Exclude files matching the regex pattern
+		if opts.ExcludeFiles != nil && opts.ExcludeFiles.MatchString(filename) {
+			continue
+		}
 
 		// Track unique files
 		filesMap[filename] = true

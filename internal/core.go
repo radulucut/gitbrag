@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
 	"time"
 
 	"github.com/radulucut/gitbrag/internal/utils"
@@ -22,15 +23,16 @@ func NewCore(time utils.Time, printer *Printer) *Core {
 }
 
 type RunOptions struct {
-	Dirs       []string
-	Since      time.Time
-	Until      time.Time
-	DateRange  string
-	Author     string
-	Output     string
-	Background string
-	Color      string
-	Lang       bool
+	Dirs         []string
+	Since        time.Time
+	Until        time.Time
+	DateRange    string
+	Author       string
+	Output       string
+	Background   string
+	Color        string
+	Lang         bool
+	ExcludeFiles *regexp.Regexp
 }
 
 func (c *Core) Run(opts *RunOptions) error {
@@ -41,7 +43,8 @@ func (c *Core) Run(opts *RunOptions) error {
 	totalStats := &GitStats{}
 
 	gitOpts := &GitStatsOptions{
-		Author: opts.Author,
+		Author:       opts.Author,
+		ExcludeFiles: opts.ExcludeFiles,
 	}
 	if !opts.Since.IsZero() {
 		gitOpts.Since = opts.Since.Format(time.RFC3339)

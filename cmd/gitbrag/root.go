@@ -1,7 +1,9 @@
 package gitbrag
 
 import (
+	"fmt"
 	"os"
+	"regexp"
 	"time"
 
 	"github.com/radulucut/gitbrag/internal"
@@ -81,6 +83,10 @@ Examples:
 
   # Show language breakdown (top 3 + Others)
   gitbrag ./ -O stats.png --lang
+
+  # Exclude files matching regex pattern
+  gitbrag ./ --exclude-files '.*\.lock$'
+  gitbrag ./ --exclude-files 'package-lock\.json'
 `,
 		Version: version,
 		RunE:    root.RunRoot,
@@ -98,6 +104,7 @@ Examples:
 	flags.StringP("background", "B", "", "background color in hex format (e.g. #282a36 or 282a36), transparent by default")
 	flags.StringP("color", "C", "", "text color in hex format (e.g. #f8f8f2 or f8f8f2)")
 	flags.Bool("lang", false, "show language breakdown with top 3 languages and others (PNG output only)")
+	flags.String("exclude-files", "", "exclude files matching regex pattern (e.g. '.*package-lock.json$')")
 
 	root.initVersion()
 
@@ -118,15 +125,26 @@ func (r *Root) RunRoot(cmd *cobra.Command, args []string) error {
 	background := cmd.Flag("background").Value.String()
 	color := cmd.Flag("color").Value.String()
 	lang, _ := cmd.Flags().GetBool("lang")
+	excludeFiles := cmd.Flag("exclude-files").Value.String()
+
+	var excludeFilesRegexp *regexp.Regexp
+	if excludeFiles != "" {
+		excludeFilesRegexp, err = regexp.Compile(excludeFiles)
+		if err != nil {
+			return fmt.Errorf("invalid exclude-files regex: %w", err)
+		}
+	}
+
 	return r.core.Run(&internal.RunOptions{
-		Dirs:       args,
-		Since:      since,
-		Until:      until,
-		Author:     author,
-		Output:     output,
-		Background: background,
-		Color:      color,
-		Lang:       lang,
+		Dirs:         args,
+		Since:        since,
+		Until:        until,
+		Author:       author,
+		Output:       output,
+		Background:   background,
+		Color:        color,
+		Lang:         lang,
+		ExcludeFiles: excludeFilesRegexp,
 	})
 }
 
